@@ -23,8 +23,8 @@ function flatten(structure) {
   return [].concat.apply([], structure);
 }
 
-function expandGlob(file, cwd) {
-  return glob.sync(file.pattern || file, {cwd: cwd});
+function expandGlob(file) {
+  return glob.sync(file.pattern || file);
 };
 
 var createPattern = function(path) {
@@ -63,8 +63,10 @@ module.exports = function(files, basePath, jspm, client) {
     jspm = {};
   if(!jspm.config)
     jspm.config = getJspmPackageJson(basePath).configFile || "config.js";
-  if(!jspm.loadFiles)
-    jspm.loadFiles = [];
+  if(!jspm.moduleIDs)
+    jspm.moduleIDs = [];
+  if(!jspm.modulePath)
+    jspm.modulePath = "";
   if(!jspm.serveFiles)
     jspm.serveFiles = [];
   if(!jspm.packages)
@@ -100,9 +102,14 @@ module.exports = function(files, basePath, jspm, client) {
   // 1. Add all the files as "served" files to the files array
   // 2. Expand out and globs to end up with actual files for jspm to load.
   //    Store that in client.jspm.expandedFiles
-  client.jspm.expandedFiles = flatten(jspm.loadFiles.map(function(file){
-    files.push(createServedPattern(basePath + "/" + (file.pattern || file)));
-    return expandGlob(file, basePath);
+  client.jspm.resolvedModuleIDs = flatten(jspm.moduleIDs.map(function(moduleID){
+    var absoluteModuleFilePaths = expandGlob(basePath + "/" + jspm.modulePath + "/" + moduleID);
+    absoluteModuleFilePaths.forEach(function(filePath) {        
+        files.push(createServedPattern(filePath));
+    });
+    return absoluteModuleFilePaths.map(function(filePath) {
+        return filePath.replace(basePath + "/" + jspm.modulePath + "/", '');
+    });
   }));
 
   // Add served files to files array

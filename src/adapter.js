@@ -44,8 +44,8 @@
     }
 
     // Load everything specified in loadFiles
-    for (var i = 0; i < karma.config.jspm.expandedFiles.length; i++) {
-        var modulePath = karma.config.jspm.expandedFiles[i];
+    for (var i = 0; i < karma.config.jspm.resolvedModuleIDs.length; i++) {
+        var modulePath = karma.config.jspm.resolvedModuleIDs[i];
         var promise = System['import'](extractModuleName(modulePath))
             ['catch'](function(e){
                 setTimeout(function() {
